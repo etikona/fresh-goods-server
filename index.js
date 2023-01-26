@@ -19,8 +19,8 @@ async function run() {
     //  get all customers data from database
     app.get('/customers', async (req, res) => {
       const query = {};
-      const users = await customersCollection.find(query).toArray();
-      res.send(users);
+      const customers= await customersCollection.find(query).toArray();
+      res.send(customers);
     })
     //  Store customers data
     app.post('/customers', async (req, res) => {
@@ -34,7 +34,14 @@ async function run() {
       const query = {_id: ObjectId(id)};
       const result = await customersCollection.deleteOne(query);
       console.log(result);
-      res.send(result)
+      res.send(result);
+    })
+    // Update or Edit customer data
+    app.get('/customers/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)};
+      const customer = await customersCollection.findOne(query);
+      res.send(customer);
     })
   }
   finally {
