@@ -14,12 +14,18 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 async function run() {
- try {
+  try {
     const customersCollection = client.db("Goods").collection("customers");
     //  get all customers data from database
     app.get('/customers', async (req, res) => {
       const query = {};
-      const customers= await customersCollection.find(query).toArray();
+      const customers = await customersCollection.find(query).toArray();
+      res.send(customers);
+    })
+    app.get('/customers/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const customers = await customersCollection.findOne(query);
       res.send(customers);
     })
     //  Store customers data
@@ -29,19 +35,27 @@ async function run() {
       res.send(result);
     })
     // Delete customer from database
-    app.delete('/customers/:id', async(req, res) => {
+    app.delete('/customers/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: ObjectId(id)};
+      const query = { _id: ObjectId(id) };
       const result = await customersCollection.deleteOne(query);
       console.log(result);
       res.send(result);
     })
     // Update or Edit customer data
-    app.get('/customers/:id', async(req, res) => {
+    app.put('/customers/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id: ObjectId(id)};
-      const customer = await customersCollection.findOne(query);
-      res.send(customer);
+      const query = { _id: ObjectId(id) };
+      const edited = req.body;
+      const option = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          displayName: edited.displayName,
+          email: edited.email
+        }
+      }
+      const result = await customersCollection.updateOne(query, updatedDoc, option)
+      res.send(result);
     })
   }
   finally {
